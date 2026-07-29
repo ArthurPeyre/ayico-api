@@ -1,6 +1,6 @@
 import Fastify from "fastify";
 import { config } from "./config";
-import { healthRoutes } from "./routes/health";
+import { healthRoutes } from "./routes/health.routes";
 
 const app = Fastify({ logger: true });
 
