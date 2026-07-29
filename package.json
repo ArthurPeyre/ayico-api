@@ -7,7 +7,10 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "build": "tsc",
-        "start": "node dist/server.js"
+        "start": "node dist/server.js",
+        "migrate:create": "node-pg-migrate create --envPath .env -j sql",
+        "migrate:up": "node-pg-migrate up --envPath .env",
+        "migrate:down": "node-pg-migrate down --envPath .env"
     },
     "dependencies": {
         "dotenv": "^16.4.5",
@@ -17,6 +20,7 @@
     "devDependencies": {
         "@types/node": "^20.14.10",
         "@types/pg": "^8.11.6",
+        "node-pg-migrate": "^9.0.0",
         "tsx": "^4.16.2",
         "typescript": "^5.5.3"
     }
