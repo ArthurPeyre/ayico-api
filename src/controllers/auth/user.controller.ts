@@ -31,15 +31,14 @@ export class UserController {
 
     static async getAllUsers(req: FastifyRequest, reply: FastifyReply) {
         try {
-            const users = await UserService.getAllUsers();
-            return users;
+            return await UserService.getAllUsers();
         } catch (error: any) {
             req.log.error(error);
             reply.code(HSC.INTERNAL_SERVER_ERROR);
             return {
                 error: "Internal server error",
                 statusCode: HSC.INTERNAL_SERVER_ERROR,
-            }; 
+            };
         }
     }
 }
