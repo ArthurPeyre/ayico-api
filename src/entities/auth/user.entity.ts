@@ -6,39 +6,39 @@ interface UserData {
     id: number | null;
     email: string;
     name: string;
-    passwordHash: string;
-    createdAt: Date | null;
+    password_hash: string;
+    created_at: Date | null;
 }
 
-type GeneratedFields = "id" | "createdAt";
+type GeneratedFields = "id" | "created_at";
 type UserInput = Omit<UserData, GeneratedFields> &
     Partial<Pick<UserData, GeneratedFields>>;
 
-export class User implements UserData {
+export class UserEntity implements UserData {
     id: number | null;
     email: string;
     name: string;
-    passwordHash: string;
-    createdAt: Date | null;
+    password_hash: string;
+    created_at: Date | null;
 
     constructor(data: UserInput) {
         this.id = data.id ?? null;
         this.email = data.email;
         this.name = data.name;
-        this.passwordHash = data.passwordHash;
-        this.createdAt = data.createdAt ?? null;
+        this.password_hash = data.password_hash;
+        this.created_at = data.created_at ?? null;
     }
 
     static async create(data: {
         email: string;
         name: string;
         password: string;
-    }): Promise<User> {
-        const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
-        return new User({ email: data.email, name: data.name, passwordHash });
+    }): Promise<UserEntity> {
+        const password_hash = await bcrypt.hash(data.password, SALT_ROUNDS);
+        return new UserEntity({ email: data.email, name: data.name, password_hash });
     }
 
     verifyPassword(password: string): Promise<boolean> {
-        return bcrypt.compare(password, this.passwordHash);
+        return bcrypt.compare(password, this.password_hash);
     }
 }
