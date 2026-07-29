@@ -1,0 +1,7 @@
+services:
+    api:
+        build:
+            target: dev
+        volumes:
+            - ./src:/app/src
+            - ./tsconfig.json:/app/tsconfig.json
