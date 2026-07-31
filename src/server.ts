@@ -3,8 +3,11 @@ import fastifyJwt from "@fastify/jwt";
 import { config } from "./config";
 import { healthRoutes } from "./routes/health.routes";
 import { userRoutes } from "./routes/auth/user.routes";
+import { registerErrorHandling } from "./utils/ControllerError";
 
 const app = Fastify({ logger: true });
+
+registerErrorHandling(app);
 
 app.register(fastifyJwt, {
     secret: config.jwtSecret,

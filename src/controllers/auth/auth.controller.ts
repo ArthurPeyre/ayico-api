@@ -13,13 +13,23 @@ export class AuthController {
         reply: FastifyReply,
     ) {
         try {
-            const user = await AuthService.login(req.body.email, req.body.password);
-            const token = await reply.jwtSign({ id: user.id, email: user.email });
+            const user = await AuthService.login(
+                req.body.email,
+                req.body.password,
+            );
+            const token = await reply.jwtSign({
+                id: user.id,
+                email: user.email,
+            });
             return { token };
-        } catch (error) {
+        } catch (error: any) {
             req.log.error(error);
             reply.code(HSC.UNAUTHORIZED);
-            return { error: "Invalid credentials" };
+            return reply.sendInternalError(
+                error,
+                "Invalid credentials",
+                HSC.UNAUTHORIZED,
+            );
         }
     }
 }

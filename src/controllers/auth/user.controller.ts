@@ -19,26 +19,16 @@ export class UserController {
             const createdUser = await UserService.createUser(user);
             reply.code(HSC.CREATED);
             return createdUser;
-        } catch (error: any) {
-            req.log.error(error);
-            reply.code(HSC.INTERNAL_SERVER_ERROR);
-            return {
-                error: "Internal server error",
-                statusCode: HSC.INTERNAL_SERVER_ERROR,
-            };
+        } catch (error) {
+            return reply.sendInternalError(error, "User creation failed");
         }
     }
 
     static async getAllUsers(req: FastifyRequest, reply: FastifyReply) {
         try {
             return await UserService.getAllUsers();
-        } catch (error: any) {
-            req.log.error(error);
-            reply.code(HSC.INTERNAL_SERVER_ERROR);
-            return {
-                error: "Internal server error",
-                statusCode: HSC.INTERNAL_SERVER_ERROR,
-            };
+        } catch (error) {
+            return reply.sendInternalError(error, "Failed to retrieve users");
         }
     }
 }
