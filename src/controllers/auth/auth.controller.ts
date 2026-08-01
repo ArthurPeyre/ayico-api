@@ -1,5 +1,4 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { HttpStatusCode as HSC } from "../../utils/HttpStatusCode";
 import { AuthService } from "../../services/auth/auth.service";
 
 interface LoginBody {
@@ -23,10 +22,7 @@ export class AuthController {
             });
             return { token };
         } catch (error) {
-            return reply.sendInternalError(error, {
-                message: "Invalid credentials",
-                statusCode: HSC.UNAUTHORIZED,
-            });
+            return reply.sendInternalError(error);
         }
     }
 }
