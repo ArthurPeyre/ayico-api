@@ -19,8 +19,11 @@ app.register(fastifyJwt, {
 app.decorate("authenticate", async (req, reply) => {
     try {
         await req.jwtVerify();
-    } catch (error) {
-        reply.sendInternalError(error, { statusCode: HSC.UNAUTHORIZED });
+    } catch (error: any) {
+        reply.sendInternalError(error, {
+            message: "Invalid or missing authentication token",
+            statusCode: HSC.UNAUTHORIZED,
+        });
     }
 });
 

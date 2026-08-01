@@ -29,20 +29,27 @@ declare module "fastify" {
 export function registerErrorHandling(app: FastifyInstance) {
     app.decorateReply(
         "sendInternalError",
-        function (this: FastifyReply, error: unknown, options: SendErrorOptions = {}) {
+        function (
+            this: FastifyReply,
+            error: unknown,
+            options: SendErrorOptions = {},
+        ) {
             const { message, statusCode } = options;
             const code = statusCode || HSC.INTERNAL_SERVER_ERROR;
             const label = ERROR_LABELS[code] ?? "Internal Server Error";
             const msg = message || label;
 
             this.request.log.error(error);
-            this.code(code);
 
-            return {
+            const payload = {
                 error: label,
                 statusCode: code,
                 ...(msg && { message: msg }),
             };
+
+            this.code(code).send(payload);
+
+            return payload;
         },
     );
 }
