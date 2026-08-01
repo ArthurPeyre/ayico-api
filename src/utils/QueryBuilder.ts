@@ -1,6 +1,32 @@
 const ORDER_DIRECTIONS = ["ASC", "DESC"] as const;
 const MAX_LIMIT = 100;
 
+function buildWhereClause<T>(
+    table: string,
+    allowedColumns: readonly (keyof T & string)[],
+    where: Partial<T> | undefined,
+): { clause: string; values: unknown[] } {
+    const values: unknown[] = [];
+
+    const entries = Object.entries(where ?? {}).filter(
+        ([, value]) => value !== undefined,
+    );
+
+    if (entries.length === 0) {
+        return { clause: "", values };
+    }
+
+    const clauses = entries.map(([column, value]) => {
+        if (!allowedColumns.includes(column as keyof T & string)) {
+            throw new Error(`Unknown column "${column}" for table "${table}"`);
+        }
+        values.push(value);
+        return `${column} = $${values.length}`;
+    });
+
+    return { clause: ` WHERE ${clauses.join(" AND ")}`, values };
+}
+
 interface BuildSelectOptions<T> {
     where?: Partial<T>;
     orderBy?: { column: keyof T & string; direction?: "ASC" | "DESC" };
@@ -14,30 +40,15 @@ export function buildSelectQuery<T>(
     options: BuildSelectOptions<T> = {},
 ): { text: string; values: unknown[] } {
     const { where, orderBy, limit, offset } = options;
-    const values: unknown[] = [];
-    let text = `SELECT * FROM ${table}`;
-
-    const assertKnownColumn = (column: string) => {
-        if (!allowedColumns.includes(column as keyof T & string)) {
-            throw new Error(`Unknown column "${column}" for table "${table}"`);
-        }
-    };
-
-    const whereEntries = Object.entries(where ?? {}).filter(
-        ([, value]) => value !== undefined,
-    );
-
-    if (whereEntries.length > 0) {
-        const clauses = whereEntries.map(([column, value]) => {
-            assertKnownColumn(column);
-            values.push(value);
-            return `${column} = $${values.length}`;
-        });
-        text += ` WHERE ${clauses.join(" AND ")}`;
-    }
+    const { clause, values } = buildWhereClause(table, allowedColumns, where);
+    let text = `SELECT * FROM ${table}${clause}`;
 
     if (orderBy) {
-        assertKnownColumn(orderBy.column);
+        if (!allowedColumns.includes(orderBy.column)) {
+            throw new Error(
+                `Unknown column "${orderBy.column}" for table "${table}"`,
+            );
+        }
         const direction = orderBy.direction ?? "ASC";
         if (!ORDER_DIRECTIONS.includes(direction)) {
             throw new Error(`Invalid order direction "${direction}"`);
@@ -61,4 +72,20 @@ export function buildSelectQuery<T>(
     }
 
     return { text, values };
+}
+
+export function buildDeleteQuery<T>(
+    table: string,
+    allowedColumns: readonly (keyof T & string)[],
+    where: Partial<T>,
+): { text: string; values: unknown[] } {
+    const { clause, values } = buildWhereClause(table, allowedColumns, where);
+
+    if (!clause) {
+        throw new Error(
+            `Refusing to DELETE from "${table}" without a WHERE condition`,
+        );
+    }
+
+    return { text: `DELETE FROM ${table}${clause} RETURNING *`, values };
 }
