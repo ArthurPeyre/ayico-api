@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
+import { AppError } from "../errors/AppError";
 import { HttpStatusCode as HSC } from "./HttpStatusCode";
 
 const ERROR_LABELS: Partial<Record<HSC, string>> = {
@@ -34,10 +35,16 @@ export function registerErrorHandling(app: FastifyInstance) {
             error: unknown,
             options: SendErrorOptions = {},
         ) {
-            const { message, statusCode } = options;
-            const code = statusCode || HSC.INTERNAL_SERVER_ERROR;
+            const isAppError = error instanceof AppError;
+            const code =
+                options.statusCode ||
+                (isAppError ? error.statusCode : undefined) ||
+                HSC.INTERNAL_SERVER_ERROR;
             const label = ERROR_LABELS[code] ?? "Internal Server Error";
-            const msg = message || label;
+            const msg =
+                options.message ||
+                (isAppError ? error.message : undefined) ||
+                label;
 
             this.request.log.error(error);
 
