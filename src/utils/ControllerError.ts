@@ -37,13 +37,13 @@ export function registerErrorHandling(app: FastifyInstance) {
         ) {
             const isAppError = error instanceof AppError;
             const code =
-                options.statusCode ||
                 (isAppError ? error.statusCode : undefined) ||
+                options.statusCode ||
                 HSC.INTERNAL_SERVER_ERROR;
             const label = ERROR_LABELS[code] ?? "Internal Server Error";
             const msg =
-                options.message ||
                 (isAppError ? error.message : undefined) ||
+                options.message ||
                 label;
 
             this.request.log.error(error);

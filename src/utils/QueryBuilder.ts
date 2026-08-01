@@ -1,10 +1,12 @@
 const ORDER_DIRECTIONS = ["ASC", "DESC"] as const;
 const MAX_LIMIT = 100;
 
+export type WhereInput<T> = { [K in keyof T]?: T[K] | T[K][] };
+
 function buildWhereClause<T>(
     table: string,
     allowedColumns: readonly (keyof T & string)[],
-    where: Partial<T> | undefined,
+    where: WhereInput<T> | undefined,
 ): { clause: string; values: unknown[] } {
     const values: unknown[] = [];
 
@@ -20,6 +22,20 @@ function buildWhereClause<T>(
         if (!allowedColumns.includes(column as keyof T & string)) {
             throw new Error(`Unknown column "${column}" for table "${table}"`);
         }
+
+        if (Array.isArray(value)) {
+            if (value.length === 0) {
+                throw new Error(
+                    `Empty array for column "${column}" would match no rows`,
+                );
+            }
+            const placeholders = value.map((item) => {
+                values.push(item);
+                return `$${values.length}`;
+            });
+            return `${column} IN (${placeholders.join(", ")})`;
+        }
+
         values.push(value);
         return `${column} = $${values.length}`;
     });
@@ -28,7 +44,7 @@ function buildWhereClause<T>(
 }
 
 interface BuildSelectOptions<T> {
-    where?: Partial<T>;
+    where?: WhereInput<T>;
     orderBy?: { column: keyof T & string; direction?: "ASC" | "DESC" };
     limit?: number;
     offset?: number;
@@ -77,7 +93,7 @@ export function buildSelectQuery<T>(
 export function buildDeleteQuery<T>(
     table: string,
     allowedColumns: readonly (keyof T & string)[],
-    where: Partial<T>,
+    where: WhereInput<T>,
 ): { text: string; values: unknown[] } {
     const { clause, values } = buildWhereClause(table, allowedColumns, where);
 

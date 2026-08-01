@@ -22,7 +22,25 @@ export class UserController {
 
             return user;
         } catch (error) {
-            return reply.sendInternalError(error);
+            return reply.sendInternalError(error, {
+                message: "Failed to retrieve user",
+            });
+        }
+    }
+
+    static async deleteMe(req: FastifyRequest, reply: FastifyReply) {
+        try {
+            const [deletedUser] = await UserService.deleteUsers({
+                email: req.user.email,
+            });
+
+            if (!deletedUser) throw new NotFoundError("User not found");
+
+            reply.code(HSC.NO_CONTENT);
+        } catch (error) {
+            return reply.sendInternalError(error, {
+                message: "Failed to delete user",
+            });
         }
     }
 
@@ -38,16 +56,6 @@ export class UserController {
         } catch (error) {
             return reply.sendInternalError(error, {
                 message: "User creation failed",
-            });
-        }
-    }
-
-    static async getAllUsers(req: FastifyRequest, reply: FastifyReply) {
-        try {
-            return await UserService.getAllUsers();
-        } catch (error) {
-            return reply.sendInternalError(error, {
-                message: "Failed to retrieve users",
             });
         }
     }

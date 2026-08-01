@@ -1,12 +1,16 @@
-import { UserData, UserEntity } from "../../entities/auth/user.entity";
+import {
+    FilterableUserData,
+    UserEntity,
+} from "../../entities/auth/user.entity";
 import { UserModel } from "../../models/auth/user.model";
+import { WhereInput } from "../../utils/QueryBuilder";
 
 export class UserService {
     static async getUsers(
         options: {
-            where?: Partial<Omit<UserData, "password_hash">>;
+            where?: WhereInput<FilterableUserData>;
             orderBy?: {
-                column: keyof Omit<UserData, "password_hash"> & string;
+                column: keyof FilterableUserData & string;
                 direction?: "ASC" | "DESC";
             };
             limit?: number;
@@ -20,7 +24,9 @@ export class UserService {
         return UserModel.createUser(user);
     }
 
-    static async getAllUsers(): Promise<UserEntity[]> {
-        return UserModel.getAllUsers();
+    static async deleteUsers(
+        where: WhereInput<FilterableUserData>,
+    ): Promise<UserEntity[]> {
+        return UserModel.deleteUsers(where);
     }
 }

@@ -7,11 +7,6 @@ export async function userRoutes(app: FastifyInstance) {
     // ===========================
 
     app.get("/me", { preHandler: [app.authenticate] }, UserController.getMe);
-    app.get(
-        "/users",
-        { preHandler: [app.authenticate] },
-        UserController.getAllUsers,
-    );
 
     // ===========================
     // ========== POST ===========
@@ -19,4 +14,15 @@ export async function userRoutes(app: FastifyInstance) {
 
     // Création d'un utilisateur
     app.post("/user", UserController.createUser);
+
+    // ===========================
+    // ========= DELETE ==========
+    // ===========================
+
+    // Suppression de son propre compte
+    app.delete(
+        "/me",
+        { preHandler: [app.authenticate] },
+        UserController.deleteMe,
+    );
 }

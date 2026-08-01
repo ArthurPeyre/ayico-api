@@ -1,10 +1,14 @@
 import { pool } from "../../db";
 import {
     FILTERABLE_USER_COLUMNS,
-    UserData,
+    FilterableUserData,
     UserEntity,
 } from "../../entities/auth/user.entity";
-import { buildSelectQuery } from "../../utils/QueryBuilder";
+import {
+    buildDeleteQuery,
+    buildSelectQuery,
+    WhereInput,
+} from "../../utils/QueryBuilder";
 
 export class UserModel {
     // Création d'un User
@@ -24,17 +28,6 @@ export class UserModel {
         return new UserEntity(result.rows[0]);
     }
 
-    // Récupération de tous les utilisateurs
-    static async getAllUsers(): Promise<UserEntity[]> {
-        const query = `
-            SELECT * FROM authentication.users;
-        `;
-
-        const results = await pool.query(query);
-
-        return results.rows.map((row) => new UserEntity(row));
-    }
-
     // Recherche d'un User par email (pour le login)
     static async findByEmail(email: string): Promise<UserEntity | null> {
         const query = `
@@ -49,18 +42,36 @@ export class UserModel {
     // Recherche flexible (filtres/tri dynamiques)
     static async getUsers(
         options: {
-            where?: Partial<Omit<UserData, "password_hash">>;
+            where?: WhereInput<FilterableUserData>;
             orderBy?: {
-                column: keyof Omit<UserData, "password_hash"> & string;
+                column: keyof FilterableUserData & string;
                 direction?: "ASC" | "DESC";
             };
             limit?: number;
             offset?: number;
         } = {},
     ): Promise<UserEntity[]> {
-        const { text, values } = buildSelectQuery<
-            Omit<UserData, "password_hash">
-        >("authentication.users", FILTERABLE_USER_COLUMNS, options);
+        const { text, values } = buildSelectQuery<FilterableUserData>(
+            "authentication.users",
+            FILTERABLE_USER_COLUMNS,
+            options,
+        );
+
+        const results = await pool.query(text, values);
+
+        return results.rows.map((row) => new UserEntity(row));
+    }
+
+    // Suppression selon des criteres dynamiques (where obligatoire, jamais un DELETE sans condition)
+    // Accepte des tableaux de valeurs (ex: { id: [1, 5, 9] }) pour supprimer plusieurs comptes cibles en une requete
+    static async deleteUsers(
+        where: WhereInput<FilterableUserData>,
+    ): Promise<UserEntity[]> {
+        const { text, values } = buildDeleteQuery<FilterableUserData>(
+            "authentication.users",
+            FILTERABLE_USER_COLUMNS,
+            where,
+        );
 
         const results = await pool.query(text, values);
 
