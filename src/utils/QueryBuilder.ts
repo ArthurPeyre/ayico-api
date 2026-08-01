@@ -47,7 +47,9 @@ export function buildSelectQuery<T>(
 
     if (limit !== undefined) {
         if (limit > MAX_LIMIT) {
-            throw new Error(`Limit ${limit} exceeds maximum allowed (${MAX_LIMIT})`);
+            throw new Error(
+                `Limit ${limit} exceeds maximum allowed (${MAX_LIMIT})`,
+            );
         }
         values.push(limit);
         text += ` LIMIT $${values.length}`;

@@ -52,7 +52,11 @@ export class UserEntity implements UserData {
         password: string;
     }): Promise<UserEntity> {
         const password_hash = await bcrypt.hash(data.password, SALT_ROUNDS);
-        return new UserEntity({ email: data.email, name: data.name, password_hash });
+        return new UserEntity({
+            email: data.email,
+            name: data.name,
+            password_hash,
+        });
     }
 
     verifyPassword(password: string): Promise<boolean> {
