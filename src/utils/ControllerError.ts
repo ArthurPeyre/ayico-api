@@ -12,12 +12,16 @@ const ERROR_LABELS: Partial<Record<HSC, string>> = {
     [HSC.SERVICE_UNAVAILABLE]: "Service Unavailable",
 };
 
+interface SendErrorOptions {
+    message?: string;
+    statusCode?: HSC;
+}
+
 declare module "fastify" {
     interface FastifyReply {
         sendInternalError(
             error: unknown,
-            message?: string,
-            statusCode?: HSC,
+            options?: SendErrorOptions,
         ): { message?: string; error: string; statusCode: HSC };
     }
 }
@@ -25,12 +29,8 @@ declare module "fastify" {
 export function registerErrorHandling(app: FastifyInstance) {
     app.decorateReply(
         "sendInternalError",
-        function (
-            this: FastifyReply,
-            error: unknown,
-            message?: string,
-            statusCode?: HSC,
-        ) {
+        function (this: FastifyReply, error: unknown, options: SendErrorOptions = {}) {
+            const { message, statusCode } = options;
             const code = statusCode || HSC.INTERNAL_SERVER_ERROR;
             const label = ERROR_LABELS[code] ?? "Internal Server Error";
             const msg = message || label;

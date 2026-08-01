@@ -22,14 +22,11 @@ export class AuthController {
                 email: user.email,
             });
             return { token };
-        } catch (error: any) {
-            req.log.error(error);
-            reply.code(HSC.UNAUTHORIZED);
-            return reply.sendInternalError(
-                error,
-                "Invalid credentials",
-                HSC.UNAUTHORIZED,
-            );
+        } catch (error) {
+            return reply.sendInternalError(error, {
+                message: "Invalid credentials",
+                statusCode: HSC.UNAUTHORIZED,
+            });
         }
     }
 }

@@ -20,7 +20,9 @@ export class UserController {
             reply.code(HSC.CREATED);
             return createdUser;
         } catch (error) {
-            return reply.sendInternalError(error, "User creation failed");
+            return reply.sendInternalError(error, {
+                message: "User creation failed",
+            });
         }
     }
 
@@ -28,7 +30,9 @@ export class UserController {
         try {
             return await UserService.getAllUsers();
         } catch (error) {
-            return reply.sendInternalError(error, "Failed to retrieve users");
+            return reply.sendInternalError(error, {
+                message: "Failed to retrieve users",
+            });
         }
     }
 }

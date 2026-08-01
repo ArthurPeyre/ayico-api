@@ -3,7 +3,9 @@ import fastifyJwt from "@fastify/jwt";
 import { config } from "./config";
 import { healthRoutes } from "./routes/health.routes";
 import { userRoutes } from "./routes/auth/user.routes";
+import { authRoutes } from "./routes/auth/auth.routes";
 import { registerErrorHandling } from "./utils/ControllerError";
+import { HttpStatusCode as HSC } from "./utils/HttpStatusCode";
 
 const app = Fastify({ logger: true });
 
@@ -18,13 +20,13 @@ app.decorate("authenticate", async (req, reply) => {
     try {
         await req.jwtVerify();
     } catch (error) {
-        req.log.error(error);
-        reply.code(401).send({ error: "Unauthorized" });
+        reply.sendInternalError(error, { statusCode: HSC.UNAUTHORIZED });
     }
 });
 
 app.register(healthRoutes);
 app.register(userRoutes);
+app.register(authRoutes);
 
 app.listen({ port: config.port, host: "0.0.0.0" }).catch((err) => {
     app.log.error(err);
