@@ -21,6 +21,12 @@ const USER_COLUMNS_MAP: Record<keyof UserData, true> = {
 };
 export const USER_COLUMNS = Object.keys(USER_COLUMNS_MAP) as (keyof UserData)[];
 
+// Champs sensibles, jamais filtrables/triables (ex: sonder l'existence d'un hash via where)
+const SENSITIVE_COLUMNS: (keyof UserData)[] = ["password_hash"];
+export const FILTERABLE_USER_COLUMNS = USER_COLUMNS.filter(
+    (column) => !SENSITIVE_COLUMNS.includes(column),
+) as (keyof Omit<UserData, "password_hash">)[];
+
 type GeneratedFields = "id" | "created_at";
 type UserInput = Omit<UserData, GeneratedFields> &
     Partial<Pick<UserData, GeneratedFields>>;

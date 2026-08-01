@@ -1,5 +1,5 @@
 import { pool } from "../../db";
-import { USER_COLUMNS, UserData, UserEntity } from "../../entities/auth/user.entity";
+import { FILTERABLE_USER_COLUMNS, UserData, UserEntity } from "../../entities/auth/user.entity";
 import { buildSelectQuery } from "../../utils/QueryBuilder";
 
 export class UserModel {
@@ -44,14 +44,17 @@ export class UserModel {
 
     // Recherche flexible (filtres/tri dynamiques)
     static async getUsers(options: {
-        where?: Partial<UserData>;
-        orderBy?: { column: keyof UserData & string; direction?: "ASC" | "DESC" };
+        where?: Partial<Omit<UserData, "password_hash">>;
+        orderBy?: {
+            column: keyof Omit<UserData, "password_hash"> & string;
+            direction?: "ASC" | "DESC";
+        };
         limit?: number;
         offset?: number;
     } = {}): Promise<UserEntity[]> {
-        const { text, values } = buildSelectQuery<UserData>(
+        const { text, values } = buildSelectQuery<Omit<UserData, "password_hash">>(
             "authentication.users",
-            USER_COLUMNS,
+            FILTERABLE_USER_COLUMNS,
             options,
         );
 

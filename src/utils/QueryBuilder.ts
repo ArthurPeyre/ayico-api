@@ -1,3 +1,6 @@
+const ORDER_DIRECTIONS = ["ASC", "DESC"] as const;
+const MAX_LIMIT = 100;
+
 interface BuildSelectOptions<T> {
     where?: Partial<T>;
     orderBy?: { column: keyof T & string; direction?: "ASC" | "DESC" };
@@ -35,10 +38,17 @@ export function buildSelectQuery<T>(
 
     if (orderBy) {
         assertKnownColumn(orderBy.column);
-        text += ` ORDER BY ${orderBy.column} ${orderBy.direction ?? "ASC"}`;
+        const direction = orderBy.direction ?? "ASC";
+        if (!ORDER_DIRECTIONS.includes(direction)) {
+            throw new Error(`Invalid order direction "${direction}"`);
+        }
+        text += ` ORDER BY ${orderBy.column} ${direction}`;
     }
 
     if (limit !== undefined) {
+        if (limit > MAX_LIMIT) {
+            throw new Error(`Limit ${limit} exceeds maximum allowed (${MAX_LIMIT})`);
+        }
         values.push(limit);
         text += ` LIMIT $${values.length}`;
     }
