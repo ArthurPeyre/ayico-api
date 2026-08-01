@@ -1,5 +1,6 @@
 import { pool } from "../../db";
-import { UserEntity } from "../../entities/auth/user.entity";
+import { USER_COLUMNS, UserData, UserEntity } from "../../entities/auth/user.entity";
+import { buildSelectQuery } from "../../utils/QueryBuilder";
 
 export class UserModel {
     // Création d'un User
@@ -39,5 +40,23 @@ export class UserModel {
         const result = await pool.query(query, [email]);
 
         return result.rows[0] ? new UserEntity(result.rows[0]) : null;
+    }
+
+    // Recherche flexible (filtres/tri dynamiques)
+    static async getUsers(options: {
+        where?: Partial<UserData>;
+        orderBy?: { column: keyof UserData & string; direction?: "ASC" | "DESC" };
+        limit?: number;
+        offset?: number;
+    } = {}): Promise<UserEntity[]> {
+        const { text, values } = buildSelectQuery<UserData>(
+            "authentication.users",
+            USER_COLUMNS,
+            options,
+        );
+
+        const results = await pool.query(text, values);
+
+        return results.rows.map((row) => new UserEntity(row));
     }
 }
