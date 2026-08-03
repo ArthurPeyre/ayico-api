@@ -18,12 +18,32 @@ interface SendErrorOptions {
     statusCode?: HSC;
 }
 
+// Erreurs qu'on choisit de faire confiance (message + statusCode surs a exposer tels quels):
+// nos AppError, ou une erreur externe (Fastify, etc.) qui porte deja un statusCode 4xx.
+// Jamais un 5xx externe: on ne sait pas ce que son message peut reveler.
+function resolveKnownError(
+    error: unknown,
+): { statusCode: HSC; message: string } | undefined {
+    if (error instanceof AppError) {
+        return { statusCode: error.statusCode, message: error.message };
+    }
+
+    if (
+        error instanceof Error &&
+        "statusCode" in error &&
+        typeof error.statusCode === "number" &&
+        error.statusCode >= 400 &&
+        error.statusCode < 500
+    ) {
+        return { statusCode: error.statusCode as HSC, message: error.message };
+    }
+
+    return undefined;
+}
+
 declare module "fastify" {
     interface FastifyReply {
-        sendInternalError(
-            error: unknown,
-            options?: SendErrorOptions,
-        ): { message?: string; error: string; statusCode: HSC };
+        sendInternalError(error: unknown, options?: SendErrorOptions): FastifyReply;
     }
 }
 
@@ -35,18 +55,16 @@ export function registerErrorHandling(app: FastifyInstance) {
             error: unknown,
             options: SendErrorOptions = {},
         ) {
-            const isAppError = error instanceof AppError;
+            const known = resolveKnownError(error);
             const code =
-                (isAppError ? error.statusCode : undefined) ||
+                known?.statusCode ||
                 options.statusCode ||
                 HSC.INTERNAL_SERVER_ERROR;
             const label = ERROR_LABELS[code] ?? "Internal Server Error";
-            const msg =
-                (isAppError ? error.message : undefined) ||
-                options.message ||
-                label;
+            const msg = known?.message || options.message || label;
+            const errorMessage = error instanceof Error ? error.message : String(error);
 
-            this.request.log.error(error);
+            this.request.log.error(`${code} > ${known?.message ?? errorMessage}`);
 
             const payload = {
                 error: label,
@@ -56,7 +74,7 @@ export function registerErrorHandling(app: FastifyInstance) {
 
             this.code(code).send(payload);
 
-            return payload;
+            return this;
         },
     );
 }
