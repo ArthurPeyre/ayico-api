@@ -8,6 +8,7 @@ export interface UserData {
     name: string;
     password_hash: string;
     created_at: Date | null;
+    family_id: number | null;
 }
 
 // Force par le typage a rester synchronise avec UserData: si un champ est
@@ -18,6 +19,7 @@ const USER_COLUMNS_MAP: Record<keyof UserData, true> = {
     name: true,
     password_hash: true,
     created_at: true,
+    family_id: true,
 };
 export const USER_COLUMNS = Object.keys(USER_COLUMNS_MAP) as (keyof UserData)[];
 
@@ -36,9 +38,11 @@ export const FILTERABLE_USER_COLUMNS = USER_COLUMNS.filter(
     (column) => !(SENSITIVE_COLUMNS as readonly string[]).includes(column),
 ) as (keyof FilterableUserData)[];
 
-type GeneratedFields = "id" | "created_at";
-type UserInput = Omit<UserData, GeneratedFields> &
-    Partial<Pick<UserData, GeneratedFields>>;
+// Champs facultatifs a la construction: soit generes par la DB (id, created_at),
+// soit simplement optionnels (family_id, absent tant que l'utilisateur n'a pas de famille).
+type OptionalFields = "id" | "created_at" | "family_id";
+type UserInput = Omit<UserData, OptionalFields> &
+    Partial<Pick<UserData, OptionalFields>>;
 
 export class UserEntity implements UserData {
     id: UserData["id"];
@@ -46,6 +50,7 @@ export class UserEntity implements UserData {
     name: UserData["name"];
     password_hash: UserData["password_hash"];
     created_at: UserData["created_at"];
+    family_id: UserData["family_id"];
 
     constructor(data: UserInput) {
         this.id = data.id ?? null;
@@ -53,6 +58,7 @@ export class UserEntity implements UserData {
         this.name = data.name;
         this.password_hash = data.password_hash;
         this.created_at = data.created_at ?? null;
+        this.family_id = data.family_id ?? null;
     }
 
     static async create(data: {

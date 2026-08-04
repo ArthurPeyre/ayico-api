@@ -4,6 +4,7 @@ import { config } from "./config";
 import { healthRoutes } from "./routes/health.routes";
 import { userRoutes } from "./routes/auth/user.routes";
 import { authRoutes } from "./routes/auth/auth.routes";
+import { familyRoutes } from "./routes/auth/family.routes";
 import { registerErrorHandling } from "./utils/ControllerError";
 import { HttpStatusCode as HSC } from "./utils/HttpStatusCode";
 
@@ -66,6 +67,7 @@ app.decorate("authenticate", async (req, reply) => {
 app.register(healthRoutes);
 app.register(userRoutes);
 app.register(authRoutes);
+app.register(familyRoutes);
 
 app.listen({ port: config.port, host: "0.0.0.0" }).catch((err) => {
     app.log.error(err);
