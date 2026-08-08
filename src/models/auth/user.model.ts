@@ -1,3 +1,4 @@
+import { Pool, PoolClient } from "pg";
 import { pool } from "../../db";
 import {
     FILTERABLE_USER_COLUMNS,
@@ -12,17 +13,23 @@ import {
 
 export class UserModel {
     // Création d'un User
-    static async createUser(user: UserEntity): Promise<UserEntity> {
+    // db: le pool par defaut, ou un client de transaction (voir withTransaction) pour lier
+    // cette creation a d'autres requetes dans une meme transaction (ex: FamilyModel.createFamily)
+    static async createUser(
+        user: UserEntity,
+        db: Pool | PoolClient = pool,
+    ): Promise<UserEntity> {
         const query = `
-            INSERT INTO authentication.users (email, name, password_hash)
-            VALUES ($1, $2, $3)
+            INSERT INTO authentication.users (email, name, password_hash, family_id)
+            VALUES ($1, $2, $3, $4)
             RETURNING *;
         `;
 
-        const result = await pool.query(query, [
+        const result = await db.query(query, [
             user.email,
             user.name,
             user.password_hash,
+            user.family_id,
         ]);
 
         return new UserEntity(result.rows[0]);

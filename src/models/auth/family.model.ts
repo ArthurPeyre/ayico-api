@@ -1,3 +1,4 @@
+import { Pool, PoolClient } from "pg";
 import { pool } from "../../db";
 import {
     FAMILY_COLUMNS,
@@ -12,14 +13,19 @@ import {
 
 export class FamilyModel {
     // Création d'une Family
-    static async createFamily(family: FamilyEntity): Promise<FamilyEntity> {
+    // db: le pool par defaut, ou un client de transaction (voir withTransaction) pour lier
+    // cette creation a d'autres requetes dans une meme transaction (ex: UserModel.createUser)
+    static async createFamily(
+        family: FamilyEntity,
+        db: Pool | PoolClient = pool,
+    ): Promise<FamilyEntity> {
         const query = `
             INSERT INTO authentication.families (name)
             VALUES ($1)
             RETURNING *;
         `;
 
-        const result = await pool.query(query, [family.name]);
+        const result = await db.query(query, [family.name]);
 
         return new FamilyEntity(result.rows[0]);
     }

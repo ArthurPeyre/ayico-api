@@ -1,3 +1,4 @@
+import { Pool, PoolClient } from "pg";
 import { FamilyData, FamilyEntity } from "../../entities/auth/family.entity";
 import { FamilyModel } from "../../models/auth/family.model";
 import { WhereInput } from "../../utils/QueryBuilder";
@@ -17,8 +18,11 @@ export class FamilyService {
         return FamilyModel.getFamilies(options);
     }
 
-    static async createFamily(family: FamilyEntity): Promise<FamilyEntity> {
-        return FamilyModel.createFamily(family);
+    static async createFamily(
+        family: FamilyEntity,
+        db?: Pool | PoolClient,
+    ): Promise<FamilyEntity> {
+        return FamilyModel.createFamily(family, db);
     }
 
     static async deleteFamilies(
