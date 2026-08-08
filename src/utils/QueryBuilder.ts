@@ -90,6 +90,38 @@ export function buildSelectQuery<T>(
     return { text, values };
 }
 
+export function buildInsertQuery<T>(
+    table: string,
+    allowedColumns: readonly (keyof T & string)[],
+    data: Partial<T>,
+): { text: string; values: unknown[] } {
+    const entries = Object.entries(data).filter(
+        ([, value]) => value !== undefined,
+    );
+
+    if (entries.length === 0) {
+        throw new Error(`Refusing to INSERT into "${table}" with no columns`);
+    }
+
+    const columns: string[] = [];
+    const values: unknown[] = [];
+
+    entries.forEach(([column, value]) => {
+        if (!allowedColumns.includes(column as keyof T & string)) {
+            throw new Error(`Unknown column "${column}" for table "${table}"`);
+        }
+        columns.push(column);
+        values.push(value);
+    });
+
+    const placeholders = values.map((_, index) => `$${index + 1}`);
+
+    return {
+        text: `INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders.join(", ")}) RETURNING *`,
+        values,
+    };
+}
+
 export function buildDeleteQuery<T>(
     table: string,
     allowedColumns: readonly (keyof T & string)[],

@@ -15,6 +15,13 @@ type OptionalFields = "id";
 type FamilyInput = Omit<FamilyData, OptionalFields> &
     Partial<Pick<FamilyData, OptionalFields>>;
 
+// Champs jamais fournis a l'INSERT car generes par Postgres (SERIAL).
+const DB_GENERATED_COLUMNS = ["id"] as const satisfies readonly (keyof FamilyData)[];
+
+export const INSERTABLE_FAMILY_COLUMNS = FAMILY_COLUMNS.filter(
+    (column) => !(DB_GENERATED_COLUMNS as readonly string[]).includes(column),
+) as (keyof Omit<FamilyData, (typeof DB_GENERATED_COLUMNS)[number]>)[];
+
 export class FamilyEntity implements FamilyData {
     id: FamilyData["id"];
     name: FamilyData["name"];

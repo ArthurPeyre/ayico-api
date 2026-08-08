@@ -45,6 +45,16 @@ type OptionalFields = "id" | "created_at" | "family_id";
 type UserInput = Omit<UserData, OptionalFields> &
     Partial<Pick<UserData, OptionalFields>>;
 
+// Champs jamais fournis a l'INSERT car generes par Postgres (SERIAL / DEFAULT now()).
+const DB_GENERATED_COLUMNS = [
+    "id",
+    "created_at",
+] as const satisfies readonly (keyof UserData)[];
+
+export const INSERTABLE_USER_COLUMNS = USER_COLUMNS.filter(
+    (column) => !(DB_GENERATED_COLUMNS as readonly string[]).includes(column),
+) as (keyof Omit<UserData, (typeof DB_GENERATED_COLUMNS)[number]>)[];
+
 export class UserEntity implements UserData {
     id: UserData["id"];
     email: UserData["email"];

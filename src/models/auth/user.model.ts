@@ -3,13 +3,16 @@ import { pool } from "../../db";
 import {
     FILTERABLE_USER_COLUMNS,
     FilterableUserData,
+    INSERTABLE_USER_COLUMNS,
     UserEntity,
 } from "../../entities/auth/user.entity";
 import {
     buildDeleteQuery,
+    buildInsertQuery,
     buildSelectQuery,
     WhereInput,
 } from "../../utils/QueryBuilder";
+import { pick } from "../../utils/pick";
 
 export class UserModel {
     // Création d'un User
@@ -19,18 +22,13 @@ export class UserModel {
         user: UserEntity,
         db: Pool | PoolClient = pool,
     ): Promise<UserEntity> {
-        const query = `
-            INSERT INTO authentication.users (email, name, password_hash, family_id)
-            VALUES ($1, $2, $3, $4)
-            RETURNING *;
-        `;
+        const { text, values } = buildInsertQuery(
+            "authentication.users",
+            INSERTABLE_USER_COLUMNS,
+            pick(user, INSERTABLE_USER_COLUMNS),
+        );
 
-        const result = await db.query(query, [
-            user.email,
-            user.name,
-            user.password_hash,
-            user.family_id,
-        ]);
+        const result = await db.query(text, values);
 
         return new UserEntity(result.rows[0]);
     }

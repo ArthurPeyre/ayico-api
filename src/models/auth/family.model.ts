@@ -4,12 +4,15 @@ import {
     FAMILY_COLUMNS,
     FamilyData,
     FamilyEntity,
+    INSERTABLE_FAMILY_COLUMNS,
 } from "../../entities/auth/family.entity";
 import {
     buildDeleteQuery,
+    buildInsertQuery,
     buildSelectQuery,
     WhereInput,
 } from "../../utils/QueryBuilder";
+import { pick } from "../../utils/pick";
 
 export class FamilyModel {
     // Création d'une Family
@@ -19,13 +22,13 @@ export class FamilyModel {
         family: FamilyEntity,
         db: Pool | PoolClient = pool,
     ): Promise<FamilyEntity> {
-        const query = `
-            INSERT INTO authentication.families (name)
-            VALUES ($1)
-            RETURNING *;
-        `;
+        const { text, values } = buildInsertQuery(
+            "authentication.families",
+            INSERTABLE_FAMILY_COLUMNS,
+            pick(family, INSERTABLE_FAMILY_COLUMNS),
+        );
 
-        const result = await db.query(query, [family.name]);
+        const result = await db.query(text, values);
 
         return new FamilyEntity(result.rows[0]);
     }
