@@ -1,8 +1,6 @@
 import { FastifyInstance } from "fastify";
-import {
-    CreateFamilyBody,
-    FamilyController,
-} from "../../controllers/auth/family.controller";
+import { CreateFamilyData } from "../../dto/auth/family.dto";
+import { FamilyController } from "../../controllers/auth/family.controller";
 
 export async function familyRoutes(app: FastifyInstance) {
     // ===========================
@@ -25,7 +23,7 @@ export async function familyRoutes(app: FastifyInstance) {
     // ===========================
 
     // Création d'une famille
-    app.post<{ Body: CreateFamilyBody }>(
+    app.post<{ Body: CreateFamilyData }>(
         "/family",
         { preHandler: [app.authenticate] },
         (req, reply) => FamilyController.createFamily(req, reply),

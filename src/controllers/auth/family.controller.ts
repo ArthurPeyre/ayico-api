@@ -1,12 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { CreateFamilyData } from "../../dto/auth/family.dto";
 import { FamilyEntity } from "../../entities/auth/family.entity";
 import { NotFoundError } from "../../errors/AppError";
 import { FamilyService } from "../../services/auth/family.service";
 import { HttpStatusCode as HSC } from "../../utils/HttpStatusCode";
-
-export interface CreateFamilyBody {
-    name?: string;
-}
 
 export class FamilyController {
     static async getFamilies(req: FastifyRequest, reply: FastifyReply) {
@@ -40,7 +37,7 @@ export class FamilyController {
     }
 
     static async createFamily(
-        req: FastifyRequest<{ Body: CreateFamilyBody }>,
+        req: FastifyRequest<{ Body: CreateFamilyData }>,
         reply: FastifyReply,
     ) {
         try {

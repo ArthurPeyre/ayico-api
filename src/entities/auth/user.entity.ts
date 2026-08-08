@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import { CreateUserData } from "../../dto/auth/user.dto";
 
 const SALT_ROUNDS = 10;
 
@@ -61,16 +62,13 @@ export class UserEntity implements UserData {
         this.family_id = data.family_id ?? null;
     }
 
-    static async create(data: {
-        email: string;
-        name: string;
-        password: string;
-    }): Promise<UserEntity> {
+    static async create(data: CreateUserData): Promise<UserEntity> {
         const password_hash = await bcrypt.hash(data.password, SALT_ROUNDS);
         return new UserEntity({
             email: data.email,
             name: data.name,
             password_hash,
+            family_id: data.family_id,
         });
     }
 

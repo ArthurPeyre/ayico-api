@@ -1,14 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { CreateUserData } from "../../dto/auth/user.dto";
 import { UserEntity } from "../../entities/auth/user.entity";
 import { NotFoundError } from "../../errors/AppError";
 import { UserService } from "../../services/auth/user.service";
 import { HttpStatusCode as HSC } from "../../utils/HttpStatusCode";
-
-interface CreateUserBody {
-    email: string;
-    name: string;
-    password: string;
-}
 
 export class UserController {
     static async getMe(req: FastifyRequest, reply: FastifyReply) {
@@ -45,7 +40,7 @@ export class UserController {
     }
 
     static async createUser(
-        req: FastifyRequest<{ Body: CreateUserBody }>,
+        req: FastifyRequest<{ Body: CreateUserData }>,
         reply: FastifyReply,
     ) {
         try {
